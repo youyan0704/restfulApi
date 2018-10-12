@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request, url_for
-from flask_restful import abort
+from flask_restful import abort, Resource, reqparse, Api
 
 app = Flask(__name__)
+api = Api(app)
 
 
 @app.route('/')
