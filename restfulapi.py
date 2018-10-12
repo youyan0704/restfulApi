@@ -2,7 +2,7 @@
 # @Time    : 18-10-12 下午5:45
 # @Author  : allen.you
 from flask import Flask, url_for, jsonify
-from flask_restful import Api, Resource, reqparse, abort
+from flask_restful import Api, Resource, reqparse, abort, fields, marshal
 
 app = Flask(__name__)
 api = Api(app)
@@ -22,6 +22,13 @@ tasks = [
         'done': False
     }
 ]
+
+task_fields = {
+    'title': fields.String,
+    'description': fields.String,
+    'done': fields.Boolean,
+    'uri': fields.Url('task')
+}
 
 
 class TaskListAPI(Resource):
@@ -45,11 +52,15 @@ class TaskAPI(Resource):
         self.reqparse.add_argument('done', type=bool, location='json')
         super(TaskAPI, self).__init__()
 
-    def get(self):
-        return jsonify({'task': make_public_task(tasks)})
+    def get(self, task_id):
+        task = list(filter(lambda t: t['id'] == task_id, tasks))
+        if len(task) == 0:
+            abort(404)
+        return jsonify({'task': task[0]})
+        # return {'task': marshal(task[0], task_fields)}
 
-    def put(self, id):
-        task = filter(lambda t: t['id'] == id, tasks)
+    def put(self, task_id):
+        task = filter(lambda t: t['id'] == task_id, tasks)
         if len(task) == 0:
             abort(404)
         task = task[0]
@@ -57,11 +68,11 @@ class TaskAPI(Resource):
         for k, v in args.iteritems():
             if v is not None:
                 task[k] = v
-        return jsonify({'task': make_public_task(task)})
-
+        # return jsonify({'task': make_public_task(task)})
+        return {'task':marshal(task, task_fields)}
 
 api.add_resource(TaskListAPI, '/todo/api/v1.0/tasks', endpoint='tasks')
-api.add_resource(TaskAPI, '/todo/api/v1.0/tasks/<int:id>', endpoint='task')
+api.add_resource(TaskAPI, '/todo/api/v1.0/tasks/<int:task_id>', endpoint='task')
 
 
 def make_public_task(task):
