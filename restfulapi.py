@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 18-10-12 下午5:45
 # @Author  : allen.you
+
 from flask import Flask, url_for, jsonify
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal
 
@@ -10,13 +11,13 @@ api = Api(app)
 
 tasks = [
     {
-        'id': 1,
+        'task_id': 1,
         'title': u'Buy groceries',
         'description': u'Milk, Cheese, Pizza, Fruit, Tylenol',
         'done': False
     },
     {
-        'id': 2,
+        'task_id': 2,
         'title': u'Learn Python',
         'description': u'Need to find a good Python tutorial on the web',
         'done': False
@@ -41,7 +42,8 @@ class TaskListAPI(Resource):
 
     def get(self):
         # return jsonify({'tasks': map(make_public_task, tasks)})
-        return jsonify({'tasks': tasks})
+        # return jsonify({'tasks': tasks})
+        return jsonify({'tasks': marshal(tasks, task_fields)})
 
 
 class TaskAPI(Resource):
@@ -53,14 +55,14 @@ class TaskAPI(Resource):
         super(TaskAPI, self).__init__()
 
     def get(self, task_id):
-        task = list(filter(lambda t: t['id'] == task_id, tasks))
+        task = list(filter(lambda t: t['task_id'] == task_id, tasks))
         if len(task) == 0:
             abort(404)
-        return jsonify({'task': task[0]})
-        # return {'task': marshal(task[0], task_fields)}
+        # return jsonify({'task': task[0]})
+        return jsonify({'task': marshal(task[0], task_fields)})
 
     def put(self, task_id):
-        task = filter(lambda t: t['id'] == task_id, tasks)
+        task = filter(lambda t: t['task_id'] == task_id, tasks)
         if len(task) == 0:
             abort(404)
         task = task[0]
@@ -69,7 +71,8 @@ class TaskAPI(Resource):
             if v is not None:
                 task[k] = v
         # return jsonify({'task': make_public_task(task)})
-        return {'task':marshal(task, task_fields)}
+        return jsonify({'task': marshal(task, task_fields)})
+
 
 api.add_resource(TaskListAPI, '/todo/api/v1.0/tasks', endpoint='tasks')
 api.add_resource(TaskAPI, '/todo/api/v1.0/tasks/<int:task_id>', endpoint='task')
